@@ -22,7 +22,7 @@ export function WelcomePage({ onNext }: WelcomePageProps) {
           </div>
           <h1 className="text-4xl mb-2">KHENDEQ</h1>
           <h1 className="text-lg mb-6 opacity-70">
-            E-LEARNING MEDRESA
+            E-LEARNING MEDRESEH
           </h1>
         </div>
 

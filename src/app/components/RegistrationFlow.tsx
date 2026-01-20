@@ -10,7 +10,7 @@ export type RegistrationData = {
   lastName: string;
   birthYear: string;
   gender: string;
-  role: string;
+  relationship: string;
   country: string;
   state: string;
   city: string;
@@ -47,12 +47,11 @@ export function RegistrationFlow({
       lastName: "",
       birthYear: "",
       gender: "",
-      role: "",
+      relationship: "",
       country: "",
       state: "",
       city: "",
       address: "",
-      zipCode: "",
       email: "",
       phoneNumber: "",
       languages: [],

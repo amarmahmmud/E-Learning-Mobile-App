@@ -35,7 +35,11 @@ export function RegistrationStep2({ onComplete, onBack }: RegistrationStep2Props
       }, 200); // Simulates a 20-second video (200ms * 100)
       
       return () => clearInterval(timer);
+    } else if (videoProgress >= 100) {
+      setVideoWatched(true);
+      setIsPlaying(false);
     }
+    console.log(`I am here 4: {videoProgress: ${videoProgress}`)
   }, [isPlaying, videoProgress]);
 
   const handleStartVideo = () => {
@@ -226,7 +230,7 @@ export function RegistrationStep2({ onComplete, onBack }: RegistrationStep2Props
               </div>
               Training Video Required
             </AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription asChild>
               <div className="space-y-4 text-left">
                 <p>
                   Before finalizing your registration request, you must watch our introductory 

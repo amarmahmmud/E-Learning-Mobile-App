@@ -1,15 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import {
-  User,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  signInWithPopup,
-  onAuthStateChanged
-} from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { auth, googleProvider, db, storage } from '../../firebase';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '../../supabase';
 
 interface AuthContextType {
   user: User | null;
@@ -39,58 +30,84 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
 
-    return unsubscribe;
+    return () => subscription.unsubscribe();
   }, []);
 
   const signInWithEmail = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) throw error;
   };
 
   const signUpWithEmail = async (email: string, password: string, userData?: any) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+    console.log("Working from here");
+    if (error) throw error;
 
-    if (userData) {
+    const user = data.user;
+    if (user && userData) {
       try {
         let photoURL = '';
-        if (userData.photo) {
-          const storageRef = ref(storage, `users/${user.uid}/profile.jpg`);
-          await uploadBytes(storageRef, userData.photo);
-          photoURL = await getDownloadURL(storageRef);
-        }
+        // TODO: Implement Cloudflare R2 upload for photo
+        // For now, skip photo upload
 
         // Remove password and photo file from data to be saved
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { password, confirmPassword, photo, ...dataToSave } = userData;
+        const { password, confirmPassword, photo, firstName, lastName, birthYear, gender, relationship, country, state, city, address, phoneNumber, languages, quranLevel, suitableTime, expectations, username, ...otherData } = userData;
 
-        await setDoc(doc(db, 'users', user.uid), {
-          ...dataToSave,
-          uid: user.uid,
-          email: email,
-          photoURL: photoURL,
-          createdAt: new Date().toISOString(),
-          status: 'pending'
-        });
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            name: `${firstName} ${lastName}`,
+            email: email,
+            photo_url: photoURL,
+            role: 'parent',
+            birth_year: birthYear,
+            gender,
+            relationship,
+            country,
+            state,
+            city,
+            address,
+            phone: phoneNumber,
+            languages,
+            quran_level: quranLevel,
+            suitable_time: suitableTime,
+            expectations,
+            username,
+            status: 'pending'
+          });
+        if (insertError) throw insertError;
       } catch (error) {
         console.error("Error saving user data:", error);
-        // Optional: Delete the user if data saving fails to maintain consistency
-        // await user.delete();
         throw error;
       }
     }
   };
 
   const signInWithGoogle = async () => {
-    await signInWithPopup(auth, googleProvider);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+    });
+    if (error) throw error;
   };
 
   const logout = async () => {
-    await signOut(auth);
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
   };
 
   const value = {

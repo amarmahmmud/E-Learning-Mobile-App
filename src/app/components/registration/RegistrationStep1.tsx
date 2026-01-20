@@ -26,6 +26,19 @@ interface RegistrationStep1Props {
 
 const LANGUAGES = ["AMHARIC", "ENGLISH", "ARABIC", "OROMO"];
 const GENDERS = ["Female", "Male"];
+const RELATIONSHIPS = [
+  "Mother",
+  "Father",
+  "Grandmother",
+  "Grandfather",
+  "Aunt",
+  "Uncle",
+  "Sister",
+  "Brother",
+  "Guardian",
+  "Teacher",
+  "Other"
+];
 
 export function RegistrationStep1({
   initialData,
@@ -37,7 +50,7 @@ export function RegistrationStep1({
     lastName: initialData.lastName,
     birthYear: initialData.birthYear,
     gender: initialData.gender,
-    role: initialData.role,
+    relationship: initialData.relationship,
     country: initialData.country,
     state: initialData.state,
     city: initialData.city,
@@ -112,6 +125,7 @@ export function RegistrationStep1({
     switch (name) {
       case "firstName":
       case "lastName":
+      case "relationship":
       case "address":
       case "city":
       case "state":
@@ -177,6 +191,8 @@ export function RegistrationStep1({
     const hasEmptyFields = requiredFields.some(field => !formData[field as keyof typeof formData]);
     const hasErrors = Object.values(errors).some(error => error !== "");
     const hasLanguages = formData.languages.length > 0;
+
+    console.log('Form validation:', { hasEmptyFields, hasErrors, hasLanguages, errors, formData });
 
     return !hasEmptyFields && !hasErrors && hasLanguages;
   };
@@ -398,7 +414,7 @@ export function RegistrationStep1({
           </div>
 
           <label className="block mb-4">
-            <span className="text-gray-700 block mb-2">City *</span>
+            <span className="text-gray-700 block mb-2">City / Sub-city *</span>
             <input
               type="text"
               value={formData.city}
@@ -460,7 +476,7 @@ export function RegistrationStep1({
                   value={formData.phoneNumber}
                   onChange={(e) => handleChange("phoneNumber", e.target.value)}
                   className={`w-full pl-10 pr-4 py-3 border ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent`}
-                  placeholder="+1 234 567 8900"
+                  placeholder="Enter without counntry code"
                   required
                 />
               </div>
@@ -608,7 +624,9 @@ export function RegistrationStep1({
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
           >
-            <span className="text-lg">Continue to Step 2</span>
+            <span className="text-lg">
+              Continue to Step 2 {isFormValid() ? '' : '(Form incomplete)'}
+            </span>
           </button>
         </div>
       </div>

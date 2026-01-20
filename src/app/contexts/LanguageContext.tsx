@@ -95,7 +95,7 @@ const translations: Record<Language, any> = {
       peace: "Peace be upon you",
     },
     info: {
-      title: "E-Learning Medresa",
+      title: "E-Learning Medres",
       bismillah: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
       bismillahMeaning:
         "In the name of Allah, the Most Gracious, the Most Merciful",

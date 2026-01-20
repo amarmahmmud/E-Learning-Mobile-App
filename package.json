@@ -8,6 +8,7 @@
     "dev": "vite"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.967.0",
     "@emotion/react": "11.14.0",
     "@emotion/styled": "11.14.1",
     "@mui/icons-material": "7.3.5",
@@ -46,7 +47,6 @@
     "country-state-city": "^3.2.1",
     "date-fns": "3.6.0",
     "embla-carousel-react": "8.6.0",
-    "firebase": "^12.7.0",
     "input-otp": "1.4.2",
     "libphonenumber-js": "^1.12.33",
     "lucide-react": "0.487.0",
