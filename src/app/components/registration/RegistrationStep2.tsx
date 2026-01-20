@@ -210,7 +210,7 @@ export function RegistrationStep2({ onComplete, onBack }: RegistrationStep2Props
             }`}
           >
             <span className="text-lg">
-              {videoWatched ? 'Submit Registration Request' : 'Watch Video to Continue'}
+              {videoWatched ? 'Register' : 'Watch Video to Continue'}
             </span>
           </button>
         </div>

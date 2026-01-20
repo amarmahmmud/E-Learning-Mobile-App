@@ -225,8 +225,8 @@ const translations: Record<Language, any> = {
     },
     login: {
       title: "Login to Continue",
-      email: "Email Address",
-      emailPlaceholder: "Enter your email",
+      email: "Email/Phone No/Username",
+      emailPlaceholder: "Enter your email/phone no/username",
       password: "Password",
       passwordPlaceholder: "Enter your password",
       loginButton: "Login",
