@@ -49,14 +49,41 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const signUpWithEmail = async (email: string, password: string, userData?: any) => {
+    console.log("Starting signUpWithEmail with email:", email);
+    
+    // Check if the user is already registered
+    console.log("Checking if user is already registered...");
+    const { data: existingUser, error: fetchError } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('email', email)
+      .single();
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      // PGRST116 is the error code for "no rows found", which is expected if the user is not registered
+      console.error("Error checking existing user:", fetchError);
+      throw fetchError;
+    }
+
+    if (existingUser) {
+      console.log("User already registered with email:", email);
+      throw new Error('User already registered');
+    }
+
+    console.log("No existing user found. Proceeding with sign-up...");
+    console.log("Attempting to sign up with email:", email);
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
-    console.log("Working from here");
-    if (error) throw error;
+    console.log("Sign-up response received:", { data, error });
+    if (error) {
+      console.error("Sign-up error details:", error);
+      throw error;
+    }
 
     const user = data.user;
+    console.log("User created successfully:", user);
     if (user && userData) {
       try {
         let photoURL = '';
@@ -66,7 +93,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // Remove password and photo file from data to be saved
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { password, confirmPassword, photo, firstName, lastName, birthYear, gender, relationship, country, state, city, address, phoneNumber, languages, quranLevel, suitableTime, expectations, username, ...otherData } = userData;
+        console.log("Extracted user data:", { firstName, lastName, birthYear, gender, relationship, country, state, city, address, phoneNumber, languages, quranLevel, suitableTime, expectations, username });
 
+        console.log("Attempting to insert user data into profiles table...");
         const { error: insertError } = await supabase
           .from('profiles')
           .insert({
@@ -90,7 +119,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
             username,
             status: 'pending'
           });
-        if (insertError) throw insertError;
+        console.log("Insert operation completed with response:", { insertError });
+        if (insertError) {
+          console.error("Database error details:", insertError);
+          throw insertError;
+        }
+        console.log("User data saved successfully to profiles table.");
       } catch (error) {
         console.error("Error saving user data:", error);
         throw error;

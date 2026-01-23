@@ -85,7 +85,11 @@ export function RegistrationFlow({
       setCurrentStep("complete");
     } catch (error: any) {
       console.error('Registration failed:', error);
-      setError(error.message || "Registration failed. Please try again.");
+      if (error.message === 'User already registered') {
+        setError('This email is already registered. Please log in instead.');
+      } else {
+        setError(error.message || "Registration failed. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }

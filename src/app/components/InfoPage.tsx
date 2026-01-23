@@ -48,7 +48,7 @@ export function InfoPage({
           </div>
           <h1 className="text-3xl tracking-wide">KHENDEQ</h1>
           <p className="text-sm opacity-90 mt-1">
-            E-Learning Medresa
+            E-Learning Medreseha
           </p>
         </div>
       </div>

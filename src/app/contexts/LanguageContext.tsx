@@ -95,7 +95,7 @@ const translations: Record<Language, any> = {
       peace: "Peace be upon you",
     },
     info: {
-      title: "E-Learning Medres",
+      title: "E-Learning Medreseh",
       bismillah: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
       bismillahMeaning:
         "In the name of Allah, the Most Gracious, the Most Merciful",
@@ -382,7 +382,7 @@ const translations: Record<Language, any> = {
       peace: "السلام عليكم",
     },
     info: {
-      title: "E-Learning Medresa",
+      title: "E-Learning Medreseheheha",
       bismillah: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
       bismillahMeaning: "بسم الله الرحمن الرحيم",
       missionTitle: "مهمتنا",
@@ -661,7 +661,7 @@ const translations: Record<Language, any> = {
       peace: "ሰላም ከእናንተ ጋር ይሁን",
     },
     info: {
-      title: "E-Learning Medresa",
+      title: "E-Learning Medreseheheha",
       bismillah: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
       bismillahMeaning: "በአላህ ስም በጣም ከባድ ነው በጣም አዛኝ",
       missionTitle: "የእኛ ተልዕኮ",
