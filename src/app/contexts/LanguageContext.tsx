@@ -125,7 +125,7 @@ const translations: Record<Language, any> = {
         "The best among you are those who learn the Quran and teach it.",
       quoteAuthor: "Prophet Muhammad ﷺ (Sahih al-Bukhari)",
       registerButton: "Send a Registration Request",
-      getStartedButton: "Get Started",
+      getStartedButton: "Login",
     },
     registration: {
       step1Title: "Caretaker Information",

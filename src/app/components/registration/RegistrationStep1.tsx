@@ -104,6 +104,19 @@ export function RegistrationStep1({
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file type and size
+      const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+      if (!validTypes.includes(file.type)) {
+        alert('Please upload a valid image file (JPEG, PNG, or GIF)');
+        return;
+      }
+      
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        alert('Please upload an image smaller than 5MB');
+        return;
+      }
+      
       setFormData({ ...formData, photo: file });
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -191,8 +204,6 @@ export function RegistrationStep1({
     const hasEmptyFields = requiredFields.some(field => !formData[field as keyof typeof formData]);
     const hasErrors = Object.values(errors).some(error => error !== "");
     const hasLanguages = formData.languages.length > 0;
-
-    console.log('Form validation:', { hasEmptyFields, hasErrors, hasLanguages, errors, formData });
 
     return !hasEmptyFields && !hasErrors && hasLanguages;
   };
