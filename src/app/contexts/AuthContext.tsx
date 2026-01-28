@@ -9,6 +9,7 @@ interface AuthContextType {
   signUpWithEmail: (email: string, password: string, userData?: any) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
+  uploadPhoto: (file: File, userId: string) => Promise<string>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -87,8 +88,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (user && userData) {
       try {
         let photoURL = '';
-        // TODO: Implement Cloudflare R2 upload for photo
-        // For now, skip photo upload
+        
+        // Upload photo to Cloudflare R2 if provided
+        if (userData.photo && userData.photo instanceof File) {
+          console.log("Uploading photo to Cloudflare R2...");
+          try {
+            photoURL = await uploadPhoto(userData.photo, user.id);
+            console.log("Photo uploaded successfully:", photoURL);
+          } catch (photoError) {
+            console.error("Failed to upload photo:", photoError);
+            // Continue without photo - don't fail registration
+          }
+        }
 
         // Remove password and photo file from data to be saved
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -144,6 +155,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (error) throw error;
   };
 
+  const uploadPhoto = async (file: File, userId: string): Promise<string> => {
+    const cloudflareWorkerUrl = import.meta.env.VITE_CLOUDFLARE_WORKER_URL;
+    
+    if (!cloudflareWorkerUrl) {
+      console.error('Cloudflare Worker URL not configured');
+      throw new Error('Photo upload service not configured');
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('userId', userId);
+
+    console.log('Uploading photo to Cloudflare Worker...');
+    
+    const response = await fetch(cloudflareWorkerUrl, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Photo upload failed:', errorText);
+      throw new Error('Failed to upload photo');
+    }
+
+    const result = await response.json();
+    console.log('Photo uploaded successfully:', result.url);
+    
+    return result.url;
+  };
+
   const value = {
     user,
     loading,
@@ -151,6 +193,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signUpWithEmail,
     signInWithGoogle,
     logout,
+    uploadPhoto,
   };
 
   return (
