@@ -52,7 +52,7 @@ export function MainApp({ onLogout }: MainAppProps) {
         {activeTab === 'lesson' && <LessonPage />}
         {activeTab === 'progress' && <ProgressPage />}
         {activeTab === 'notification' && <NotificationPage />}
-        {activeTab === 'profile' && <ProfilePage />}
+        {activeTab === 'profile' && <ProfilePage onLogout={onLogout} />}
       </div>
 
       {/* Bottom Navigation */}

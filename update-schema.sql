@@ -13,3 +13,11 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS suitable_time TEXT;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS expectations TEXT;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS username TEXT;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected'));
+
+-- Add INSERT policy for achievements so parents can add achievements for their students
+CREATE POLICY "Parents can insert achievements for their students" ON achievements FOR INSERT WITH CHECK (
+      student_id IN (
+          SELECT id FROM students WHERE profile_id = auth.uid()
+            )
+            );
+)

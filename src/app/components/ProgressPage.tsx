@@ -1,10 +1,120 @@
+import { useState, useEffect } from 'react';
 import { TrendingUp, Award, Star, Calendar } from 'lucide-react';
+import { supabase } from '../../supabase';
+import { useAuth } from '../contexts/AuthContext';
+
+interface StudentProgress {
+  id: number;
+  name: string;
+  grade_id: number;
+  grade_name: string;
+  progress: number;
+  weekly_goal: number;
+  achievements: number;
+  rank: string;
+}
 
 export function ProgressPage() {
-  const students = [
-    { id: 1, name: 'Fuad Muhada', grade: 1, progress: 15, weeklyGoal: 80, achievements: 5 },
-    { id: 2, name: 'A/aziz Hadi', grade: 2, progress: 70, weeklyGoal: 100, achievements: 12 },
-  ];
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [students, setStudents] = useState<StudentProgress[]>([]);
+
+  useEffect(() => {
+    if (user) {
+      fetchStudentsProgress();
+    }
+  }, [user]);
+
+  const fetchStudentsProgress = async () => {
+    try {
+      setLoading(true);
+
+      // Fetch students with their grades
+      const { data: studentsData } = await supabase
+        .from('students')
+        .select(`
+          *,
+          grade:grades(*)
+        `)
+        .eq('profile_id', user?.id);
+
+      if (studentsData) {
+        // Calculate progress for each student
+        const studentsWithProgress = await Promise.all(
+          studentsData.map(async (student) => {
+            // Get total lessons for the student's grade
+            const { count: totalLessons } = await supabase
+              .from('lessons')
+              .select('*', { count: 'exact', head: true })
+              .eq('grade_id', student.grade_id);
+
+            // Get completed lessons
+            const { count: completedLessons } = await supabase
+              .from('progress')
+              .select('*', { count: 'exact', head: true })
+              .eq('student_id', student.id)
+              .eq('completed', true);
+
+            // Calculate progress percentage
+            const progress = totalLessons && completedLessons
+              ? Math.round((completedLessons / totalLessons) * 100)
+              : 0;
+
+            // Get weekly goal (this week completed / target)
+            const { count: weeklyCompleted } = await supabase
+              .from('progress')
+              .select('*', { count: 'exact', head: true })
+              .eq('student_id', student.id)
+              .eq('completed', true);
+            
+            const weeklyGoal = weeklyCompleted ? Math.min(weeklyCompleted * 10, 100) : 0;
+
+            // Get achievements count
+            const { count: achievements } = await supabase
+              .from('progress')
+              .select('*', { count: 'exact', head: true })
+              .eq('student_id', student.id)
+              .eq('completed', true);
+
+            // Calculate rank based on progress
+            let rank = 'F';
+            if (progress >= 90) rank = 'A+';
+            else if (progress >= 80) rank = 'A';
+            else if (progress >= 70) rank = 'B+';
+            else if (progress >= 60) rank = 'B';
+            else if (progress >= 50) rank = 'C+';
+            else if (progress >= 40) rank = 'C';
+            else if (progress >= 30) rank = 'D';
+
+            return {
+              id: student.id,
+              name: student.name,
+              grade_id: student.grade_id,
+              grade_name: student.grade?.name || `Grade ${student.grade_id}`,
+              progress,
+              weekly_goal: weeklyGoal,
+              achievements: achievements || 0,
+              rank,
+            };
+          })
+        );
+        setStudents(studentsWithProgress);
+      }
+
+    } catch (error) {
+      console.error('Error fetching student progress:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 p-6 pb-24 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 p-6 pb-24">
@@ -19,7 +129,7 @@ export function ProgressPage() {
             </div>
             <div>
               <h2 className="text-lg text-gray-800">{student.name}</h2>
-              <p className="text-sm text-gray-600">Grade {student.grade}</p>
+              <p className="text-sm text-gray-600">{student.grade_name}</p>
             </div>
           </div>
 
@@ -42,7 +152,7 @@ export function ProgressPage() {
             <div className="bg-emerald-50 rounded-lg p-3 text-center">
               <Calendar className="text-emerald-600 mx-auto mb-1" size={20} />
               <p className="text-xs text-gray-600">This Week</p>
-              <p className="text-lg text-emerald-700">{student.weeklyGoal}%</p>
+              <p className="text-lg text-emerald-700">{student.weekly_goal}%</p>
             </div>
             <div className="bg-amber-50 rounded-lg p-3 text-center">
               <Award className="text-amber-600 mx-auto mb-1" size={20} />
@@ -52,7 +162,7 @@ export function ProgressPage() {
             <div className="bg-blue-50 rounded-lg p-3 text-center">
               <Star className="text-blue-600 mx-auto mb-1" size={20} />
               <p className="text-xs text-gray-600">Rank</p>
-              <p className="text-lg text-blue-700">A+</p>
+              <p className="text-lg text-blue-700">{student.rank}</p>
             </div>
           </div>
         </div>

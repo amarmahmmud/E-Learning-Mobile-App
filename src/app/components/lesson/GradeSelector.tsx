@@ -1,6 +1,6 @@
+import { useState } from 'react';
 import { ChevronLeft, Lock, CreditCard } from 'lucide-react';
 import { Student } from '../LessonPage';
-import { useState } from 'react';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -24,7 +24,7 @@ export function GradeSelector({ student, onSelectGrade, onBack }: GradeSelectorP
   const [selectedLockedGrade, setSelectedLockedGrade] = useState<number | null>(null);
 
   const handleGradeClick = (grade: number) => {
-    const isLocked = grade > student.grade;
+    const isLocked = grade > student.grade_id;
     if (isLocked) {
       setSelectedLockedGrade(grade);
       setShowPaymentDialog(true);
@@ -34,7 +34,6 @@ export function GradeSelector({ student, onSelectGrade, onBack }: GradeSelectorP
   };
 
   const handlePayment = () => {
-    // Here you would implement actual payment processing
     alert('Payment processing feature will be implemented. Thank you!');
     setShowPaymentDialog(false);
     setSelectedLockedGrade(null);
@@ -55,7 +54,7 @@ export function GradeSelector({ student, onSelectGrade, onBack }: GradeSelectorP
       <div className="p-4">
         <div className="grid grid-cols-2 gap-4">
           {grades.map((grade) => {
-            const isLocked = grade > student.grade;
+            const isLocked = grade > student.grade_id;
             return (
               <button
                 key={grade}
@@ -78,7 +77,7 @@ export function GradeSelector({ student, onSelectGrade, onBack }: GradeSelectorP
                   <p className={`text-lg ${isLocked ? 'text-gray-400' : 'text-emerald-600'}`}>
                     Grade {grade}
                   </p>
-                  {grade === student.grade && (
+                  {grade === student.grade_id && (
                     <p className="text-xs text-emerald-600 mt-2">Current Grade</p>
                   )}
                   {isLocked && (
@@ -93,7 +92,7 @@ export function GradeSelector({ student, onSelectGrade, onBack }: GradeSelectorP
         {/* Info Box */}
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-sm text-blue-800">
-            ℹ️ Complete all lessons in Grade {student.grade} to unlock the next grade level, or pay $100 to unlock any grade.
+            ℹ️ Complete all lessons in {student.grade_name} to unlock the next grade level, or pay $100 to unlock any grade.
           </p>
         </div>
       </div>

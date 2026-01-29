@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, RefreshCw, ChevronRight, Lock } from 'lucide-react';
+import { supabase } from '../../supabase';
+import { useAuth } from '../contexts/AuthContext';
 import { ChildSelector } from './lesson/ChildSelector';
 import { GradeSelector } from './lesson/GradeSelector';
 import { SemesterSelector } from './lesson/SemesterSelector';
@@ -11,19 +13,19 @@ export interface Student {
   id: number;
   name: string;
   age: number;
-  grade: number;
+  grade_id: number;
+  grade_name: string;
   progress: number;
   photo: string;
 }
 
-export const mockStudents: Student[] = [
-  { id: 1, name: 'Fuad Muhada', age: 7, grade: 1, progress: 15, photo: '👦' },
-  { id: 2, name: 'A/aziz Hadi', age: 8, grade: 2, progress: 70, photo: '👦' },
-];
-
 export type LessonView = 'child-selector' | 'grade-selector' | 'semester-selector' | 'week-selector' | 'schedule' | 'daily-lesson';
 
 export function LessonPage() {
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [students, setStudents] = useState<Student[]>([]);
+  
   const [currentView, setCurrentView] = useState<LessonView>('child-selector');
   const [selectedChild, setSelectedChild] = useState<Student | null>(null);
   const [selectedGrade, setSelectedGrade] = useState<number | null>(null);
@@ -31,6 +33,65 @@ export function LessonPage() {
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      fetchStudents();
+    }
+  }, [user]);
+
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch students with their grades
+      const { data: studentsData } = await supabase
+        .from('students')
+        .select(`
+          *,
+          grade:grades(*)
+        `)
+        .eq('profile_id', user?.id);
+
+      if (studentsData) {
+        // Calculate progress for each student
+        const studentsWithProgress = await Promise.all(
+          studentsData.map(async (student) => {
+            const { count: totalLessons } = await supabase
+              .from('lessons')
+              .select('*', { count: 'exact', head: true })
+              .eq('grade_id', student.grade_id);
+
+            const { count: completedLessons } = await supabase
+              .from('progress')
+              .select('*', { count: 'exact', head: true })
+              .eq('student_id', student.id)
+              .eq('completed', true);
+
+            const progress = totalLessons && completedLessons
+              ? Math.round((completedLessons / totalLessons) * 100)
+              : 0;
+
+            return {
+              id: student.id,
+              name: student.name,
+              age: student.age || 0,
+              grade_id: student.grade_id,
+              grade_name: student.grade?.name || `Grade ${student.grade_id}`,
+              progress,
+              photo: student.photo || '👦'
+            };
+          })
+        );
+        setStudents(studentsWithProgress);
+      }
+
+    } catch (error) {
+      console.error('Error fetching students:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChildSelect = (child: Student) => {
     setSelectedChild(child);
@@ -78,12 +139,26 @@ export function LessonPage() {
     }
   };
 
+  const handleRefresh = () => {
+    fetchStudents();
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {currentView === 'child-selector' && (
         <ChildSelector
-          students={mockStudents}
+          students={students}
           onSelectChild={handleChildSelect}
+          onRefresh={handleRefresh}
+          onStudentAdded={handleRefresh}
         />
       )}
       {currentView === 'grade-selector' && selectedChild && (
